@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Timeline Studio</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- ══════════ LOGIN ══════════ -->
+  <div id="login-screen" class="screen glass-bg-screen">
+    <button id="global-theme-btn-login" class="theme-toggle glass-panel" title="Modo oscuro / claro">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    </button>
+    <div class="glass-panel login-card">
+      <div class="login-logo">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+      </div>
+      <h1 class="login-title">Timeline Studio</h1>
+      <p class="login-subtitle">¿Sos uno de estos?</p>
+      <ul id="user-list" class="user-list"></ul>
+      <button id="new-user-btn" class="btn-primary login-new-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Nuevo usuario
+      </button>
+    </div>
+    <div id="new-user-form" class="glass-panel login-card new-user-form" style="display:none">
+      <h2>Crear usuario</h2>
+      <input type="text" id="new-user-input" class="glass-input" placeholder="Tu nombre..." maxlength="30" autofocus>
+      <div class="login-form-actions">
+        <button id="new-user-cancel" class="btn-secondary">Cancelar</button>
+        <button id="new-user-confirm" class="btn-primary">Crear y entrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ MAIN MENU ══════════ -->
+  <div id="main-menu" class="screen glass-bg-screen" style="display:none">
+    <header class="screen-header">
+      <h1 class="screen-title">Mis líneas de tiempo</h1>
+      <div class="screen-header-right">
+        <span id="mm-user-badge" class="user-badge clickable" title="Cambiar de usuario"></span>
+        <button id="sync-open-btn" class="icon-btn sync-badge" title="Sincronizar con la nube (Supabase)">
+          <span class="sync-badge-dot" id="sync-dot"></span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        </button>
+        <button id="help-btn" class="icon-btn" title="Cómo usar la página">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </button>
+        <button id="theme-btn" class="icon-btn" title="Modo oscuro / claro">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div id="mm-lines-list" class="lines-list"></div>
+
+    <button id="create-line-btn" class="create-line-btn glass-panel">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Crear nueva línea de tiempo
+    </button>
+
+    <div class="mm-actions">
+      <button id="import-btn" class="mm-action-btn glass-panel">Importar respaldo</button>
+      <button id="export-all-btn" class="mm-action-btn glass-panel">Exportar todo</button>
+    </div>
+    <input type="file" id="import-file" accept=".json,application/json" style="display:none">
+  </div>
+
+  <!-- ══════════ CREATE / EDIT LINE MODAL ══════════ -->
+  <div id="line-modal" class="modal-overlay" style="display:none">
+    <div class="modal glass-panel">
+      <div class="modal-header">
+        <h2 id="line-modal-title">Nueva Línea de Tiempo</h2>
+        <button id="line-close" class="icon-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="editor-body">
+        <div class="form-group">
+          <label>Título</label>
+          <input type="text" id="line-title" class="glass-input" placeholder="Título de la línea de tiempo..." maxlength="80">
+        </div>
+        <div class="form-group">
+          <label>Color de la barra principal</label>
+          <div class="rgb-picker">
+            <input type="color" id="line-color" value="#6366f1">
+            <div class="rgb-labels">
+              <div class="rgb-row"><span>R</span><input type="range" id="line-r" min="0" max="255" value="99"><span id="line-r-val">99</span></div>
+              <div class="rgb-row"><span>G</span><input type="range" id="line-g" min="0" max="255" value="102"><span id="line-g-val">102</span></div>
+              <div class="rgb-row"><span>B</span><input type="range" id="line-b" min="0" max="255" value="241"><span id="line-b-val">241</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="line-preview">
+          <span class="line-preview-label">Vista previa de la barra</span>
+          <div id="line-preview-bar" class="line-preview-bar" style="background:#6366f1"></div>
+        </div>
+        <div class="form-group">
+          <label>Color de fondo del proyecto</label>
+          <div class="bg-picker">
+            <input type="color" id="project-bg-color" value="#ffffff">
+            <div class="preset-colors"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="line-delete" class="btn-danger" style="display:none">Eliminar</button>
+        <div class="modal-footer-right">
+          <button id="line-cancel" class="btn-secondary">Cancelar</button>
+          <button id="line-save" class="btn-primary">Crear</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ TIMELINE WORKSPACE (injected in JS) ══════════ -->
+  <div id="workspace" class="screen" style="display:none"></div>
+
+  <!-- ══════════ TAB EDITOR MODAL ══════════ -->
+  <div id="tab-modal" class="modal-overlay" style="display:none">
+    <div class="modal glass-panel">
+      <div class="modal-header">
+        <h2 id="tab-modal-title">Nueva Pestaña</h2>
+        <button id="tab-close" class="icon-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="editor-body">
+        <div class="form-group">
+          <label>Título</label>
+          <input type="text" id="tab-title" class="glass-input" placeholder="Título o fecha..." maxlength="120">
+        </div>
+        <div class="form-group">
+          <label>Descripción</label>
+          <textarea id="tab-desc" class="glass-input textarea" rows="4" placeholder="Descripción del suceso..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Color</label>
+          <div class="preset-colors"></div>
+          <div class="rgb-picker">
+            <input type="color" id="tab-color" value="#6366f1">
+            <div class="rgb-labels">
+              <div class="rgb-row"><span>R</span><input type="range" id="tab-r" min="0" max="255" value="99"><span id="tab-r-val">99</span></div>
+              <div class="rgb-row"><span>G</span><input type="range" id="tab-g" min="0" max="255" value="102"><span id="tab-g-val">102</span></div>
+              <div class="rgb-row"><span>B</span><input type="range" id="tab-b" min="0" max="255" value="241"><span id="tab-b-val">241</span></div>
+            </div>
+          </div>
+        </div>
+        <div id="tab-audit" class="audit-info" style="display:none">
+          <div class="audit-row"><span class="audit-label">Colocada por:</span><span id="tab-created-by"></span></div>
+          <div class="audit-row"><span class="audit-label">Fecha:</span><span id="tab-created-at"></span></div>
+          <div class="audit-row"><span class="audit-label">Modificada por:</span><span id="tab-modified-by"></span></div>
+          <div class="audit-row"><span class="audit-label">Última modificación:</span><span id="tab-modified-at"></span></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="tab-delete-in-modal" class="btn-danger" style="display:none">Eliminar</button>
+        <div class="modal-footer-right">
+          <button id="tab-cancel" class="btn-secondary">Cancelar</button>
+          <button id="tab-save-btn" class="btn-primary">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ USER MENU MODAL (cambiar/crear usuario) ══════════ -->
+  <div id="user-menu-modal" class="modal-overlay" style="display:none">
+    <div class="modal glass-panel">
+      <div class="modal-header">
+        <h2>Cambiar de usuario</h2>
+        <button id="user-menu-close" class="icon-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <p class="subtitle" style="text-align:left;margin-bottom:14px">Elegí otro usuario o creá uno nuevo.</p>
+      <ul id="user-menu-list" class="user-list"></ul>
+      <div class="user-menu-new">
+        <input type="text" id="user-menu-input" class="glass-input" placeholder="Nombre del nuevo usuario..." maxlength="30">
+        <button id="user-menu-create" class="btn-primary">Crear y usar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ SUPABASE SYNC MODAL ══════════ -->
+  <div id="sync-modal" class="modal-overlay" style="display:none">
+    <div class="modal glass-panel sync-modal">
+      <div class="modal-header">
+        <h2>Conexión a la nube</h2>
+        <button id="sync-close" class="icon-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <p class="subtitle" style="text-align:left;margin-bottom:14px">
+        Tu progreso se guarda en la nube (Supabase) y se sincroniza <strong>en tiempo real y automáticamente</strong> entre todos tus dispositivos.
+        Solo necesitás el URL del proyecto y la clave pública "anon" (son públicas, seguras de poner aquí).
+      </p>
+      <div class="form-group">
+        <label>Supabase Project URL</label>
+        <input type="text" id="sync-url" class="glass-input" placeholder="https://xxxx.supabase.co" maxlength="80" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label>Clave pública (anon public key)</label>
+        <div class="sync-token-wrap">
+          <input type="password" id="sync-token" class="glass-input" placeholder="eyJhbGciOi..." autocomplete="off">
+          <button id="sync-token-toggle" class="icon-btn" title="Mostrar / ocultar" type="button">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="sync-status" id="sync-status"></div>
+      <div class="modal-footer" style="padding:0;margin-top:16px">
+        <button id="sync-clear" class="btn-danger" style="padding:10px 14px;font-size:13px;display:none">Desconectar</button>
+        <div class="modal-footer-right">
+          <button id="sync-test" class="btn-secondary">Probar</button>
+          <button id="sync-save" class="btn-primary">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ HISTORY MODAL ══════════ -->
+  <div id="history-modal" class="modal-overlay" style="display:none">
+    <div class="modal glass-panel history-modal">
+      <div class="modal-header">
+        <h2>Historial de cambios</h2>
+        <button id="history-close" class="icon-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div id="history-list" class="history-list"></div>
+      <div class="history-empty" id="history-empty" style="display:none">Todavía no hay cambios registrados en esta línea de tiempo.</div>
+    </div>
+  </div>
+
+  <!-- ══════════ HELP MODAL ══════════ -->
+  <div id="help-modal" class="modal-overlay" style="display:none">
+    <div class="modal glass-panel help-modal">
+      <div class="modal-header">
+        <h2>Cómo usar la página</h2>
+        <button id="help-close" class="icon-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="help-body" id="help-body"></div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="github-api.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
